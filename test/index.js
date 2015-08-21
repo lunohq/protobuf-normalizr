@@ -89,7 +89,7 @@ describe('protobuf-normalizr', () => {
             const address = mockAddress(builder);
             normalize(address).should.eql({
                 result: 1,
-                protobufs: {
+                entities: {
                     '.test.messages.address': {
                         1: address,
                     },
@@ -102,7 +102,7 @@ describe('protobuf-normalizr', () => {
             const address = mockAddress(builder, {street: null});
             normalize(address).should.eql({
                 result: 1,
-                protobufs: {
+                entities: {
                     '.test.messages.address': {
                         1: address,
                     },
@@ -118,7 +118,7 @@ describe('protobuf-normalizr', () => {
             ];
             normalize([address1, address2]).should.eql({
                 result: [1, 2],
-                protobufs: {
+                entities: {
                     '.test.messages.address': {
                         1: address1,
                         2: address2,
@@ -132,7 +132,7 @@ describe('protobuf-normalizr', () => {
             const profile = mockProfile(builder);
             normalize(profile).should.eql({
                 result: 1,
-                protobufs: {
+                entities: {
                     '.test.messages.profile': {
                         1: profile,
                     },
@@ -146,7 +146,7 @@ describe('protobuf-normalizr', () => {
             const expected = location.$type.clazz.decode(location.encode());
             normalize(location).should.eql({
                 result: 1,
-                protobufs: {
+                entities: {
                     '.test.messages.profile': {
                         1: expected.admins[0],
                         2: expected.profiles[0],
@@ -177,7 +177,7 @@ describe('protobuf-normalizr', () => {
             normalize(response, key)
                 .should.eql({
                     result: key,
-                    protobufs: {
+                    entities: {
                         '.test.messages.profile': {
                             1: expected.profiles[0],
                             2: expected.profiles[1],

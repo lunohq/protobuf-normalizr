@@ -17,14 +17,14 @@ const getEntityId = (entity, key=null) => {
     return key ? key : entity.get('id');
 }
 
-const normalizeField = (field, protobuf, protobufs, normalizations, key=null) => {
-    let value = protobuf.get(field.name)
+const normalizeField = (field, entity, entities, normalizations, key=null) => {
+    let value = entity.get(field.name)
     if (!(field.repeated || isEntity(value, key))) {
         return;
     }
 
-    let entityKey = getEntityKey(protobuf);
-    let entityId = getEntityId(protobuf, key);
+    let entityKey = getEntityKey(entity);
+    let entityId = getEntityId(entity, key);
     if (!normalizations[entityKey]) {
         normalizations[entityKey] = {};
     }
@@ -40,91 +40,91 @@ const normalizeField = (field, protobuf, protobufs, normalizations, key=null) =>
         }
         value.map((childProtobuf) => {
             stored[field.name].push(childProtobuf.id);
-            visit(childProtobuf, protobufs, normalizations);
+            visit(childProtobuf, entities, normalizations);
         })
-        protobuf.set(field.name, null);
+        entity.set(field.name, null);
     } else if (value !== null && isEntity(value)) {
         stored[field.name] = value.id;
-        visit(value, protobufs, normalizations);
-        protobuf.set(field.name, null);
+        visit(value, entities, normalizations);
+        entity.set(field.name, null);
     }
 }
 
-const visitProtobuf = (protobuf, protobufs, normalizations, key=null) => {
-    protobuf.$type._fields.map((field) => {
-        normalizeField(field, protobuf, protobufs, normalizations, key);
+const visitProtobuf = (entity, entities, normalizations, key=null) => {
+    entity.$type._fields.map((field) => {
+        normalizeField(field, entity, entities, normalizations, key);
     });
-    return protobuf;
+    return entity;
 }
 
-const visitArray = (obj, protobufs, normalizations) => {
+const visitArray = (obj, entities, normalizations) => {
     const normalized = obj.map((childObj) => {
-        return visit(childObj, protobufs, normalizations);
+        return visit(childObj, entities, normalizations);
     })
     return normalized;
 }
 
-const visitEntity = (entity, protobufs, normalizations, key=null) => {
+const visitEntity = (entity, entities, normalizations, key=null) => {
     const entityKey = getEntityKey(entity);
     const entityId = getEntityId(entity, key);
 
-    if (!protobufs[entityKey]) {
-        protobufs[entityKey] = {};
+    if (!entities[entityKey]) {
+        entities[entityKey] = {};
     }
 
-    protobufs[entityKey][entityId] = entity;
-    visitProtobuf(entity, protobufs, normalizations, key);
+    entities[entityKey][entityId] = entity;
+    visitProtobuf(entity, entities, normalizations, key);
     return entityId;
 }
 
-const visit = (obj, protobufs, normalizations, key=null) => {
+const visit = (obj, entities, normalizations, key=null) => {
     if (obj.$type && isEntity(obj, key)) {
-        return visitEntity(obj, protobufs, normalizations, key);
+        return visitEntity(obj, entities, normalizations, key);
     } else if (obj.$type) {
-        return visitProtobuf(obj, protobufs, normalizations);
+        return visitProtobuf(obj, entities, normalizations);
     } else if (obj instanceof Array) {
-        return visitArray(obj, protobufs, normalizations);
+        return visitArray(obj, entities, normalizations);
     }
 
     return obj;
 }
 
-const denormalizeProtobuf = (protobuf, entityKey, key, state) => {
+const denormalizeEntity = (entity, entityKey, key, state) => {
     if (!state.normalizations[entityKey]) {
         return;
     }
 
-    const fieldNames = protobuf.$type._fieldsByName;
+    const fieldNames = entity.$type._fieldsByName;
     const normalizations = state.normalizations[entityKey][key];
     for (let field in normalizations) {
         const value = normalizations[field];
         const type = fieldNames[field].resolvedType.fqn().toLowerCase();
         if (value instanceof Array) {
-            protobuf.set(field, []);
+            entity.set(field, []);
             value.map((id) => {
-                protobuf[field].push(state.protobufs[type][id]);
+                entity[field].push(state.entities[type][id]);
             });
         } else {
-            protobuf.set(field, state.protobufs[type][value]);
+            entity.set(field, state.entities[type][value]);
         }
     }
 }
 
 export const normalize = (obj, key=null) => {
-    let protobufs = {};
+    let entities = {};
     let normalizations = {};
-    let result = visit(obj, protobufs, normalizations, key);
-    return { protobufs, normalizations, result };
+    let result = visit(obj, entities, normalizations, key);
+    return { entities, normalizations, result };
 }
 
 export const denormalize = (key, builder, state) => {
     const entityKey = getEntityKey(builder);
-    if (!state.protobufs[entityKey]) {
+    if (!state.entities[entityKey]) {
         return;
     }
-    const protobuf = state.protobufs[entityKey][key];
-    denormalizeProtobuf(protobuf, entityKey, key, state)
-    return protobuf;
+    const entity = state.entities[entityKey][key];
+    denormalizeEntity(entity, entityKey, key, state)
+    return entity;
 }
 
 export default normalize;
