@@ -81,7 +81,7 @@ const mockLocation = (
     );
 }
 
-describe('protobuf-normalizr', () => {
+describe('pbnormalizr', () => {
 
     describe('normalize', () => {
 

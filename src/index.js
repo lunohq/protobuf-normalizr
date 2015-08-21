@@ -1,6 +1,4 @@
-import Protobuf from 'protobufjs';
-
-const isProtobuf = (obj) => obj && obj.$type instanceof Protobuf.Reflect.Message;
+const isProtobuf = (obj) => obj && obj.$type;
 
 const isEntity = (obj, key=null) => {
     if (
@@ -55,7 +53,7 @@ const normalizeField = (field, entity, entities, normalizations, key=null) => {
 }
 
 const visitProtobuf = (entity, entities, normalizations, key=null) => {
-    entity.$type.getChildren(Protobuf.Reflect.Message.Field).map((field) => {
+    entity.$type._fields.map((field) => {
         normalizeField(field, entity, entities, normalizations, key);
     });
     return entity;
