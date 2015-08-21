@@ -24,6 +24,9 @@ module.exports = {
                 warnings: false
             }
         })
-    ]
+    ],
+    node: {
+      fs: "empty"
+    }
 };
 
