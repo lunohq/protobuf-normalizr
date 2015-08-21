@@ -98,6 +98,19 @@ describe('protobuf-normalizr', () => {
             });
         });
 
+        it('can normalize a partial entity', () => {
+            const address = mockAddress(builder, {street: null});
+            normalize(address).should.eql({
+                result: 1,
+                protobufs: {
+                    address: {
+                        1: address,
+                    },
+                },
+                normalizations: {},
+            });
+        });
+
         it('can normalize an array of single entities', () => {
             const [address1, address2] = [
                 mockAddress(builder),

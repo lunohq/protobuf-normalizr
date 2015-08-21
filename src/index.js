@@ -1,6 +1,6 @@
 const isEntity = (obj, key=null) => {
     if (
-        (obj.hasOwnProperty('id') && obj.id !== null) ||
+        (obj && obj.hasOwnProperty('id') && obj.id !== null) ||
         (key !== null)
     ) {
         return true;
