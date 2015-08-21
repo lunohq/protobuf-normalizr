@@ -21,8 +21,10 @@
     "babel-loader": "^5.3.2",
     "chai": "^3.2.0",
     "mocha": "^2.2.5",
-    "protobufjs": "^4.0.0",
     "rimraf": "^2.4.2",
     "webpack": "^1.11.0"
+  },
+  "dependencies": {
+    "protobufjs": "^4.0.0"
   }
 }

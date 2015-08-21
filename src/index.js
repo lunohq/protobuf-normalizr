@@ -1,3 +1,7 @@
+import Protobuf from 'protobufjs';
+
+const isProtobuf = (obj) => obj && obj.$type instanceof Protobuf.Reflect.Message;
+
 const isEntity = (obj, key=null) => {
     if (
         (obj && obj.hasOwnProperty('id') && obj.id !== null) ||
@@ -51,7 +55,7 @@ const normalizeField = (field, entity, entities, normalizations, key=null) => {
 }
 
 const visitProtobuf = (entity, entities, normalizations, key=null) => {
-    entity.$type._fields.map((field) => {
+    entity.$type.getChildren(Protobuf.Reflect.Message.Field).map((field) => {
         normalizeField(field, entity, entities, normalizations, key);
     });
     return entity;
@@ -78,9 +82,9 @@ const visitEntity = (entity, entities, normalizations, key=null) => {
 }
 
 const visit = (obj, entities, normalizations, key=null) => {
-    if (obj.$type && isEntity(obj, key)) {
+    if (isProtobuf(obj) && isEntity(obj, key)) {
         return visitEntity(obj, entities, normalizations, key);
-    } else if (obj.$type) {
+    } else if (isProtobuf(obj)) {
         return visitProtobuf(obj, entities, normalizations);
     } else if (obj instanceof Array) {
         return visitArray(obj, entities, normalizations);
