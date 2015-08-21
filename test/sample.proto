@@ -1,3 +1,5 @@
+package test.messages;
+
 message Address {
 
     enum AddressType {

@@ -10,7 +10,7 @@ const isEntity = (obj, key=null) => {
 }
 
 const getEntityKey = (entity) => {
-    return entity.$type.name.toLowerCase();
+    return entity.$type.fqn().toLowerCase();
 }
 
 const getEntityId = (entity, key=null) => {
@@ -98,7 +98,7 @@ const denormalizeProtobuf = (protobuf, entityKey, key, state) => {
     const normalizations = state.normalizations[entityKey][key];
     for (let field in normalizations) {
         const value = normalizations[field];
-        const type = fieldNames[field].resolvedType.name.toLowerCase();
+        const type = fieldNames[field].resolvedType.fqn().toLowerCase();
         if (value instanceof Array) {
             protobuf.set(field, []);
             value.map((id) => {

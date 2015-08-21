@@ -16,7 +16,7 @@ const mockStatus = (builder, parameters={}) => {
     const defaults = {
         value: 'status value',
     }
-    return mockProto(builder, 'Status', Object.assign({}, defaults, parameters));
+    return mockProto(builder, 'test.messages.Status', Object.assign({}, defaults, parameters));
 }
 
 const mockProfile = (builder, parameters={}, statusParameters={}) => {
@@ -28,7 +28,7 @@ const mockProfile = (builder, parameters={}, statusParameters={}) => {
     }
     return mockProto(
         builder,
-        'Profile',
+        'test.messages.Profile',
         Object.assign({}, defaults, parameters)
     );
 }
@@ -43,7 +43,7 @@ const mockAddress = (builder, parameters={}) => {
 
     return mockProto(
         builder,
-        'Address',
+        'test.messages.Address',
         Object.assign({}, defaults, parameters)
     );
 }
@@ -54,7 +54,7 @@ const mockMultipleProfileResponse = (builder, parameters={}) => {
     }
     return mockProto(
         builder,
-        'MultipleProfileResponse',
+        'test.messages.MultipleProfileResponse',
         Object.assign({}, defaults, parameters)
     );
 }
@@ -76,7 +76,7 @@ const mockLocation = (
 
     return mockProto(
         builder,
-        'Location',
+        'test.messages.Location',
         Object.assign({}, defaults, parameters)
     );
 }
@@ -90,7 +90,7 @@ describe('protobuf-normalizr', () => {
             normalize(address).should.eql({
                 result: 1,
                 protobufs: {
-                    address: {
+                    '.test.messages.address': {
                         1: address,
                     },
                 },
@@ -103,7 +103,7 @@ describe('protobuf-normalizr', () => {
             normalize(address).should.eql({
                 result: 1,
                 protobufs: {
-                    address: {
+                    '.test.messages.address': {
                         1: address,
                     },
                 },
@@ -119,7 +119,7 @@ describe('protobuf-normalizr', () => {
             normalize([address1, address2]).should.eql({
                 result: [1, 2],
                 protobufs: {
-                    address: {
+                    '.test.messages.address': {
                         1: address1,
                         2: address2,
                     },
@@ -133,7 +133,7 @@ describe('protobuf-normalizr', () => {
             normalize(profile).should.eql({
                 result: 1,
                 protobufs: {
-                    profile: {
+                    '.test.messages.profile': {
                         1: profile,
                     },
                 },
@@ -147,19 +147,19 @@ describe('protobuf-normalizr', () => {
             normalize(location).should.eql({
                 result: 1,
                 protobufs: {
-                    profile: {
+                    '.test.messages.profile': {
                         1: expected.admins[0],
                         2: expected.profiles[0],
                     },
-                    location: {
+                    '.test.messages.location': {
                         1: location,
                     },
-                    address: {
+                    '.test.messages.address': {
                         1: expected.address,
                     },
                 },
                 normalizations: {
-                    location: {
+                    '.test.messages.location': {
                         1: {
                             profiles: [2],
                             admins: [1],
@@ -173,22 +173,22 @@ describe('protobuf-normalizr', () => {
         it('can normalize a message with nested entities', () => {
             const response = mockMultipleProfileResponse(builder);
             const expected = response.$type.clazz.decode(response.encode());
-            const key = 'key';
+            const key = 'some_parameter_id';
             normalize(response, key)
                 .should.eql({
                     result: key,
                     protobufs: {
-                        profile: {
+                        '.test.messages.profile': {
                             1: expected.profiles[0],
                             2: expected.profiles[1],
                         },
-                        multipleprofileresponse: {
-                            key: response,
+                        '.test.messages.multipleprofileresponse': {
+                            some_parameter_id: response,
                         },
                     },
                     normalizations: {
-                        multipleprofileresponse: {
-                            key: {
+                        '.test.messages.multipleprofileresponse': {
+                            some_parameter_id: {
                                 profiles: [1, 2],
                             },
                         },
@@ -205,14 +205,14 @@ describe('protobuf-normalizr', () => {
             const expected = response.$type.clazz.decode(response.encode());
             const key = 'key';
             const state = normalize(response, key);
-            denormalize(key, builder.build('MultipleProfileResponse'), state)
+            denormalize(key, builder.build('test.messages.MultipleProfileResponse'), state)
                 .should.eql(expected);
         })
 
         it('can denormalize a single entity', () => {
             const address = mockAddress(builder);
             const state = normalize(address);
-            denormalize(state.result, builder.build('Address'), state)
+            denormalize(state.result, builder.build('test.messages.Address'), state)
                 .should.eql(address);
 
         });
