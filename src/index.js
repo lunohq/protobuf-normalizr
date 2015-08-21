@@ -51,7 +51,7 @@ const normalizeField = (field, protobuf, protobufs, normalizations, key=null) =>
 }
 
 const visitProtobuf = (protobuf, protobufs, normalizations, key=null) => {
-    protobuf.$type.children.map((field) => {
+    protobuf.$type._fields.map((field) => {
         normalizeField(field, protobuf, protobufs, normalizations, key);
     });
     return protobuf;

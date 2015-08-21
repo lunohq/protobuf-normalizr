@@ -1,8 +1,15 @@
 message Address {
+
+    enum AddressType {
+        HOME = 1;
+        BUSINESS = 2;
+    }
+    
     optional uint32 id = 1;
     optional string street = 2;
     optional string city = 3;
     optional string state = 4;
+    optional AddressType type = 5;
 }
 
 message Status {
