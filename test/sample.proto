@@ -1,0 +1,37 @@
+message Address {
+    optional uint32 id = 1;
+    optional string street = 2;
+    optional string city = 3;
+    optional string state = 4;
+}
+
+message Status {
+    optional string value = 1;
+}
+
+message Location {
+    optional uint32 id = 1;
+    optional string name = 2;
+    optional Address address = 3;
+    repeated Profile admins = 4;
+    repeated Profile profiles = 5;
+}
+
+message Profile {
+    optional uint32 id = 1;
+    optional string name = 2;
+    optional string title = 3;
+    optional Status status = 4;
+}
+
+message SingleProfileResposne {
+    optional Profile profile = 1;
+}
+
+message MultipleProfileResponse {
+    repeated Profile profiles = 1;
+}
+
+message SingleLocationResponse {
+    optional Location location = 1;
+}
