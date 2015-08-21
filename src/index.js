@@ -23,7 +23,7 @@ const getEntityId = (entity, key=null) => {
 
 const normalizeField = (field, entity, entities, normalizations, key=null) => {
     let value = entity.get(field.name)
-    if (!(field.repeated || isEntity(value, key))) {
+    if (value === null || !(field.repeated && value.length || isEntity(value, key))) {
         return;
     }
 
@@ -38,7 +38,7 @@ const normalizeField = (field, entity, entities, normalizations, key=null) => {
     }
 
     let stored = normalizations[entityKey][entityId];
-    if (field.repeated && value !== null) {
+    if (field.repeated) {
         if (!stored[field.name]) {
             stored[field.name] = [];
         }
@@ -47,7 +47,7 @@ const normalizeField = (field, entity, entities, normalizations, key=null) => {
             visit(childProtobuf, entities, normalizations);
         })
         entity.set(field.name, null);
-    } else if (value !== null && isEntity(value)) {
+    } else if (isEntity(value)) {
         stored[field.name] = value.id;
         visit(value, entities, normalizations);
         entity.set(field.name, null);

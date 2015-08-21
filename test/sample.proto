@@ -18,6 +18,12 @@ message Status {
     optional string value = 1;
 }
 
+message Item {
+    optional string id = 1;
+    optional string key = 2;
+    optional string value = 3;
+}
+
 message Location {
     optional uint32 id = 1;
     optional string name = 2;
@@ -31,6 +37,7 @@ message Profile {
     optional string name = 2;
     optional string title = 3;
     optional Status status = 4;
+    repeated Item items = 5;
 }
 
 message SingleProfileResposne {
