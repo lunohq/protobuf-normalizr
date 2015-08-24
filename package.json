@@ -1,6 +1,6 @@
 {
   "name": "protobuf-normalizr",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Normalize nested Protobuf API responses.",
   "main": "lib/index.js",
   "directories": {
