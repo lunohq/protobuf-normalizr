@@ -1,5 +1,5 @@
 {
-  "name": "pbnormalizr",
+  "name": "protobuf-normalizr",
   "version": "0.0.9",
   "description": "Normalize nested Protobuf API responses.",
   "main": "lib/index.js",
