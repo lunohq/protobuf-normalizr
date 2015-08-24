@@ -1,4 +1,4 @@
-pbnormalizr
+protobuf-normalizr
 ==================
 
 Normalizes deeply nested Protobuf API responses for Flux application.
