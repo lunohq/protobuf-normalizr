@@ -128,3 +128,15 @@ export function denormalize(key, builder, state) {
     denormalizeEntity(entity, entityKey, key, state)
     return entity;
 }
+
+export function getNormalizations(normalizationsKey, key, builder, state) {
+    const entityKey = getEntityKey(builder);
+    if (!state.normalizations[entityKey]) {
+        return;
+    }
+    const normalizations = state.normalizations[entityKey][key];
+    if (!normalizations) {
+        return;
+    }
+    return normalizations[normalizationsKey];
+}

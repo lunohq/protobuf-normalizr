@@ -1,7 +1,7 @@
 import { should } from 'chai';
 import Protobuf from 'protobufjs';
 
-import normalize, { denormalize } from '../lib/index';
+import normalize, { denormalize, getNormalizations } from '../lib/index';
 
 should();
 
@@ -70,7 +70,7 @@ const mockLocation = (
         id: 1,
         name: 'HQ',
         address: mockAddress(builder, addressParameters),
-        admins: [mockProfile(builder, adminParameters)], 
+        admins: [mockProfile(builder, adminParameters)],
         profiles: [mockProfile(builder, profileParameters)],
     }
 
@@ -216,6 +216,18 @@ describe('pbnormalizr', () => {
                 .should.eql(address);
 
         });
+
+    });
+
+    describe('getNormalizations', () => {
+
+        it('can get the normalizations for an object', () => {
+            const location = mockLocation(builder);
+            const expected = location.$type.clazz.decode(location.encode());
+            const normalized = normalize(location);
+            (getNormalizations('profiles', normalized.result, location.$type.clazz, normalized)).should.eql([2]);
+        });
+
     });
 
 })
