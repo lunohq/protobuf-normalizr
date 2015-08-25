@@ -124,9 +124,17 @@ export function denormalize(key, builder, state) {
     if (!state.entities[entityKey]) {
         return;
     }
-    const entity = state.entities[entityKey][key];
-    denormalizeEntity(entity, entityKey, key, state)
-    return entity;
+    if (Array.isArray(key)) {
+        return key.map(id => {
+            const entity = state.entities[entityKey][id];
+            denormalizeEntity(entity, entityKey, id, state);
+            return entity;
+        });
+    } else {
+        const entity = state.entities[entityKey][key];
+        denormalizeEntity(entity, entityKey, key, state)
+        return entity;
+    }
 }
 
 export function getNormalizations(normalizationsKey, key, builder, state) {

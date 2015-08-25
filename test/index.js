@@ -217,6 +217,16 @@ describe('pbnormalizr', () => {
 
         });
 
+        it('can denormalize an array of normalized entities', () => {
+            const [address1, address2] = [
+                mockAddress(builder),
+                mockAddress(builder, {id: 2}),
+            ];
+            const state = normalize([address1, address2]);
+            denormalize(state.result, builder.build('test.messages.Address'), state)
+                .should.eql([address1, address2]);
+        });
+
     });
 
     describe('getNormalizations', () => {
