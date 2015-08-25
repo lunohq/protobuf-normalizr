@@ -112,14 +112,14 @@ const denormalizeEntity = (entity, entityKey, key, state) => {
     }
 }
 
-export const normalize = (obj, key=null) => {
+export default function normalize(obj, key=null) {
     let entities = {};
     let normalizations = {};
     let result = visit(obj, entities, normalizations, key);
     return { entities, normalizations, result };
 }
 
-export const denormalize = (key, builder, state) => {
+export function denormalize(key, builder, state) {
     const entityKey = getEntityKey(builder);
     if (!state.entities[entityKey]) {
         return;
@@ -128,5 +128,3 @@ export const denormalize = (key, builder, state) => {
     denormalizeEntity(entity, entityKey, key, state)
     return entity;
 }
-
-export default normalize;
