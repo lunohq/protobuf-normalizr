@@ -207,6 +207,7 @@ describe('pbnormalizr', () => {
             const state = normalize(response, key);
             denormalize(key, builder.build('test.messages.MultipleProfileResponse'), state)
                 .should.eql(expected);
+            should().not.exist(response.profiles);
         })
 
         it('can denormalize a single entity', () => {
@@ -214,7 +215,6 @@ describe('pbnormalizr', () => {
             const state = normalize(address);
             denormalize(state.result, builder.build('test.messages.Address'), state)
                 .should.eql(address);
-
         });
 
         it('can denormalize an array of normalized entities', () => {

@@ -132,8 +132,11 @@ export function denormalize(key, builder, state) {
         });
     } else {
         const entity = state.entities[entityKey][key];
-        denormalizeEntity(entity, entityKey, key, state)
-        return entity;
+        // Create a copy of the entity which we'll denormalize. This ensures we're not inflating entities when
+        // denormalizing.
+        const denormalizedEntity = entity.$type.clazz.decode(entity.encode());
+        denormalizeEntity(denormalizedEntity, entityKey, key, state)
+        return denormalizedEntity;
     }
 }
 
