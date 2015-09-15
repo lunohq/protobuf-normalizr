@@ -50,7 +50,7 @@ const mockAddress = (builder, parameters={}) => {
 
 const mockMultipleProfileResponse = (builder, parameters={}) => {
     const defaults = {
-        profiles: [mockProfile(builder, {id: 1}), mockProfile(builder, {id: 2})],
+        profiles: [mockProfile(builder, {id: 1}, {id: 1}), mockProfile(builder, {id: 2}, {id: 2})],
     }
     return mockProto(
         builder,
@@ -173,6 +173,11 @@ describe('pbnormalizr', () => {
         it('can normalize a message with nested entities', () => {
             const response = mockMultipleProfileResponse(builder);
             const expected = response.$type.clazz.decode(response.encode());
+            const status1 = expected.profiles[0].status;
+            const status2 = expected.profiles[1].status;
+            // simulate normalization unsetting these
+            expected.profiles[0].set('status', null);
+            expected.profiles[1].set('status', null);
             const key = 'some_parameter_id';
             normalize(response, key)
                 .should.eql({
@@ -185,11 +190,23 @@ describe('pbnormalizr', () => {
                         '.test.messages.multipleprofileresponse': {
                             some_parameter_id: response,
                         },
+                        '.test.messages.status': {
+                            1: status1,
+                            2: status2,
+                        },
                     },
                     normalizations: {
                         '.test.messages.multipleprofileresponse': {
                             some_parameter_id: {
                                 profiles: [1, 2],
+                            },
+                        },
+                        '.test.messages.profile': {
+                            1: {
+                                status: 1
+                            },
+                            2: {
+                                status: 2
                             },
                         },
                     },

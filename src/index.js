@@ -92,24 +92,30 @@ const visit = (obj, entities, normalizations, key=null) => {
 }
 
 const denormalizeEntity = (entity, entityKey, key, state) => {
+    // Create a copy of the entity which we'll denormalize. This ensures we're not inflating entities when
+    // denormalizing.
+    const denormalizedEntity = entity.$type.clazz.decode(entity.encode());
     if (!state.normalizations[entityKey]) {
-        return;
+        return denormalizedEntity;
     }
 
-    const fieldNames = entity.$type._fieldsByName;
+    const fieldNames = denormalizedEntity.$type._fieldsByName;
     const normalizations = state.normalizations[entityKey][key];
     for (let field in normalizations) {
         const value = normalizations[field];
         const type = fieldNames[field].resolvedType.fqn().toLowerCase();
         if (value instanceof Array) {
-            entity.set(field, []);
+            denormalizedEntity.set(field, []);
             value.map((id) => {
-                entity[field].push(state.entities[type][id]);
+                const normalizedValue = state.entities[type][id];
+                denormalizedEntity[field].push(denormalizeEntity(normalizedValue, type, id, state));
             });
         } else {
-            entity.set(field, state.entities[type][value]);
+            const normalizedValue = state.entities[type][value];
+            denormalizedEntity.set(field, denormalizeEntity(normalizedValue, type, value, state));
         }
     }
+    return denormalizedEntity;
 }
 
 export default function normalize(obj, key=null) {
@@ -132,11 +138,7 @@ export function denormalize(key, builder, state) {
         });
     } else {
         const entity = state.entities[entityKey][key];
-        // Create a copy of the entity which we'll denormalize. This ensures we're not inflating entities when
-        // denormalizing.
-        const denormalizedEntity = entity.$type.clazz.decode(entity.encode());
-        denormalizeEntity(denormalizedEntity, entityKey, key, state)
-        return denormalizedEntity;
+        return denormalizeEntity(entity, entityKey, key, state)
     }
 }
 
