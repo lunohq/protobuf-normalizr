@@ -17,6 +17,7 @@ message Address {
 message Status {
     optional uint32 id = 1;
     optional string value = 2;
+    optional Profile profile = 3;
 }
 
 message Item {
@@ -51,4 +52,9 @@ message MultipleProfileResponse {
 
 message SingleLocationResponse {
     optional Location location = 1;
+}
+
+message NestedProfileResponse {
+    optional Profile profile = 1;
+    optional Status status = 2;
 }

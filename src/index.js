@@ -91,7 +91,7 @@ const visit = (obj, entities, normalizations, key=null) => {
     return obj;
 }
 
-const denormalizeEntity = (entity, entityKey, key, state) => {
+const denormalizeEntity = (entity, entityKey, key, state, parent = null) => {
     // Create a copy of the entity which we'll denormalize. This ensures we're not inflating entities when
     // denormalizing.
     const denormalizedEntity = entity.$type.clazz.decode(entity.encode());
@@ -104,15 +104,20 @@ const denormalizeEntity = (entity, entityKey, key, state) => {
     for (let field in normalizations) {
         const value = normalizations[field];
         const type = fieldNames[field].resolvedType.fqn().toLowerCase();
+        // Prevent circular relationships
+        if (type === parent) {
+            continue;
+        }
+
         if (value instanceof Array) {
             denormalizedEntity.set(field, []);
             value.map((id) => {
                 const normalizedValue = state.entities[type][id];
-                denormalizedEntity[field].push(denormalizeEntity(normalizedValue, type, id, state));
+                denormalizedEntity[field].push(denormalizeEntity(normalizedValue, type, id, state, parent = entityKey));
             });
         } else {
             const normalizedValue = state.entities[type][value];
-            denormalizedEntity.set(field, denormalizeEntity(normalizedValue, type, value, state));
+            denormalizedEntity.set(field, denormalizeEntity(normalizedValue, type, value, state, parent = entityKey));
         }
     }
     return denormalizedEntity;

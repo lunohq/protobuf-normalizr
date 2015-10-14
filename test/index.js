@@ -14,6 +14,7 @@ const mockProto = (builder, className, parameters) => {
 
 const mockStatus = (builder, parameters={}) => {
     const defaults = {
+        id: 1,
         value: 'status value',
     }
     return mockProto(builder, 'test.messages.Status', Object.assign({}, defaults, parameters));
@@ -59,6 +60,18 @@ const mockMultipleProfileResponse = (builder, parameters={}) => {
     );
 }
 
+const mockNestedProfileResponse = (builder) => {
+    const defaults = {
+        profile: mockProfile(builder),
+        status: mockStatus(builder, {profile: mockProfile(builder, {status: null})}),
+    }
+    return mockProto(
+        builder,
+        'test.messages.NestedProfileResponse',
+        defaults
+    );
+}
+
 const mockLocation = (
     builder,
     parameters={},
@@ -70,8 +83,8 @@ const mockLocation = (
         id: 1,
         name: 'HQ',
         address: mockAddress(builder, addressParameters),
-        admins: [mockProfile(builder, adminParameters)],
-        profiles: [mockProfile(builder, profileParameters)],
+        admins: [mockProfile(builder, adminParameters, {id: 1})],
+        profiles: [mockProfile(builder, profileParameters, {id: 2})],
     }
 
     return mockProto(
@@ -130,32 +143,52 @@ describe('pbnormalizr', () => {
 
         it('can normalize an entity with a nested non-entity protobuf', () => {
             const profile = mockProfile(builder);
+            const status = profile.status;
             normalize(profile).should.eql({
                 result: 1,
                 entities: {
                     '.test.messages.profile': {
                         1: profile,
                     },
+                    '.test.messages.status': {
+                        1: status,
+                    },
                 },
-                normalizations: {},
+                normalizations: {
+                    '.test.messages.profile': {
+                        1: {
+                            'status': 1,
+                        },
+                    },
+                },
             });
         });
 
         it('can normalize an entity with nested entities', () => {
             const location = mockLocation(builder);
             const expected = location.$type.clazz.decode(location.encode());
+            const expectedAdmin = expected.admins[0];
+            const expectedStatus1 = expectedAdmin.get('status');
+            expectedAdmin.set('status', null);
+            const expectedProfile = expected.profiles[0];
+            const expectedStatus2 = expectedProfile.get('status');
+            expectedProfile.set('status', null);
             normalize(location).should.eql({
                 result: 1,
                 entities: {
                     '.test.messages.profile': {
-                        1: expected.admins[0],
-                        2: expected.profiles[0],
+                        1: expectedAdmin,
+                        2: expectedProfile,
                     },
                     '.test.messages.location': {
                         1: location,
                     },
                     '.test.messages.address': {
                         1: expected.address,
+                    },
+                    '.test.messages.status': {
+                        1: expectedStatus1,
+                        2: expectedStatus2,
                     },
                 },
                 normalizations: {
@@ -165,7 +198,15 @@ describe('pbnormalizr', () => {
                             admins: [1],
                             address: 1,
                         },
-                    }
+                    },
+                    '.test.messages.profile': {
+                        1: {
+                            status: 1,
+                        },
+                        2: {
+                            status: 2,
+                        },
+                    },
                 },
             });
         });
@@ -242,6 +283,15 @@ describe('pbnormalizr', () => {
             const state = normalize([address1, address2]);
             denormalize(state.result, builder.build('test.messages.Address'), state)
                 .should.eql([address1, address2]);
+        });
+
+        it('can denormalize nested entities', () => {
+            const response = mockNestedProfileResponse(builder);
+            const expected = response.$type.clazz.decode(response.encode());
+            const key = 'key';
+            const state = normalize(response, key);
+            denormalize(key, builder.build('test.messages.NestedProfileResponse'), state)
+                .should.eql(expected);
         });
 
     });
