@@ -21,7 +21,7 @@ const getEntityId = (entity, key=null) => {
 
 const normalizeField = (field, entity, entities, normalizations, key=null) => {
     let value = entity.get(field.name)
-    if (value === null || !(field.repeated && value.length || isEntity(value, key))) {
+    if (value === null || !(field.repeated && value.length && isEntity(value[0], key) || isEntity(value, key))) {
         return;
     }
 

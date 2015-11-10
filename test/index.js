@@ -39,7 +39,8 @@ const mockAddress = (builder, parameters={}) => {
         id: 1,
         street: 'Market',
         city: 'SF',
-        state: 'CA'
+        state: 'CA',
+        member_ids: ['1', '2', '3'],
     };
 
     return mockProto(

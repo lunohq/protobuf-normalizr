@@ -12,6 +12,7 @@ message Address {
     optional string city = 3;
     optional string state = 4;
     optional AddressType type = 5;
+    repeated string member_ids = 6;
 }
 
 message Status {
