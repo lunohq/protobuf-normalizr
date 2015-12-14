@@ -276,6 +276,28 @@ describe('pbnormalizr', () => {
                 .should.eql(address);
         });
 
+        it('will return null if the protobuf doesn\'t have all the required fields', () => {
+            let profile = mockProfile(builder, undefined, {value: null});
+            let state = normalize(profile);
+            let denormalized = denormalize(
+                state.result,
+                builder.build('test.messages.Profile'),
+                state,
+                ['status.value']
+            );
+            should().not.exist(denormalized);
+
+            profile = mockProfile(builder);
+            state = normalize(profile);
+            denormalized = denormalize(
+                state.result,
+                builder.build('test.messages.Profile'),
+                state,
+                ['status.value']
+            );
+            should().exist(denormalized.status.value);
+        });
+
         it('can denormalize an array of normalized entities', () => {
             const [address1, address2] = [
                 mockAddress(builder),

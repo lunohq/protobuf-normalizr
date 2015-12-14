@@ -91,7 +91,21 @@ const visit = (obj, entities, normalizations, key=null) => {
     return obj;
 }
 
-const denormalizeEntity = (entity, entityKey, key, state, parent = null) => {
+function entityHasValueForField (entity, field) {
+    const parts = field.split('.');
+    const part = parts[0];
+    const remainder = parts.slice(1).join('.');
+    const value = entity[part];
+    if (value !== undefined && value !== null) {
+        if (remainder) {
+            return entityHasValueForField(value, remainder);
+        }
+        return true;
+    }
+    return false;
+}
+
+const denormalizeEntity = (entity, entityKey, key, state, parent = null, requiredFields = null) => {
     // Create a copy of the entity which we'll denormalize. This ensures we're not inflating entities when
     // denormalizing.
     const denormalizedEntity = entity.$type.clazz.decode(entity.encode());
@@ -113,13 +127,23 @@ const denormalizeEntity = (entity, entityKey, key, state, parent = null) => {
             denormalizedEntity.set(field, []);
             value.map((id) => {
                 const normalizedValue = state.entities[type][id];
-                denormalizedEntity[field].push(denormalizeEntity(normalizedValue, type, id, state, parent = entityKey));
+                denormalizedEntity[field].push(denormalizeEntity(normalizedValue, type, id, state, parent = entityKey, requiredFields = requiredFields));
             });
         } else {
             const normalizedValue = state.entities[type][value];
-            denormalizedEntity.set(field, denormalizeEntity(normalizedValue, type, value, state, parent = entityKey));
+            denormalizedEntity.set(field, denormalizeEntity(normalizedValue, type, value, state, parent = entityKey, requiredFields = requiredFields));
         }
     }
+
+    // validate that the denormalizedEntity has all the required fields
+    if (requiredFields && requiredFields.length > 0) {
+        for (let field of requiredFields) {
+            if (!entityHasValueForField(denormalizedEntity, field)) {
+                return null;
+            }
+        }
+    }
+
     return denormalizedEntity;
 }
 
@@ -130,7 +154,7 @@ export default function normalize(obj, key=null) {
     return { entities, normalizations, result };
 }
 
-export function denormalize(key, builder, state) {
+export function denormalize(key, builder, state, requiredFields) {
     const entityKey = getEntityKey(builder);
     if (!state.entities[entityKey]) {
         return;
@@ -138,12 +162,12 @@ export function denormalize(key, builder, state) {
     if (Array.isArray(key)) {
         return key.map(id => {
             const entity = state.entities[entityKey][id];
-            denormalizeEntity(entity, entityKey, id, state);
+            denormalizeEntity(entity, entityKey, id, state, undefined, requiredFields);
             return entity;
         });
     } else {
         const entity = state.entities[entityKey][key];
-        return denormalizeEntity(entity, entityKey, key, state)
+        return denormalizeEntity(entity, entityKey, key, state, undefined, requiredFields)
     }
 }
 
