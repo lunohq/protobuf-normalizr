@@ -84,7 +84,7 @@ const mockLocation = (
         id: 1,
         name: 'HQ',
         address: mockAddress(builder, addressParameters),
-        admins: [mockProfile(builder, adminParameters, {id: 1})],
+        admin: mockProfile(builder, adminParameters, {id: 1}),
         profiles: [mockProfile(builder, profileParameters, {id: 2})],
     }
 
@@ -168,7 +168,7 @@ describe('pbnormalizr', () => {
         it('can normalize an entity with nested entities', () => {
             const location = mockLocation(builder);
             const expected = location.$type.clazz.decode(location.encode());
-            const expectedAdmin = expected.admins[0];
+            const expectedAdmin = expected.admin;
             const expectedStatus1 = expectedAdmin.get('status');
             expectedAdmin.set('status', null);
             const expectedProfile = expected.profiles[0];
@@ -196,7 +196,7 @@ describe('pbnormalizr', () => {
                     '.test.messages.location': {
                         1: {
                             profiles: [2],
-                            admins: [1],
+                            admin: 1,
                             address: 1,
                         },
                     },
@@ -277,25 +277,31 @@ describe('pbnormalizr', () => {
         });
 
         it('will return null if the protobuf doesn\'t have all the required fields', () => {
-            let profile = mockProfile(builder, undefined, {value: null});
-            let state = normalize(profile);
+            let location = mockLocation(
+                builder,
+                undefined,
+                undefined,
+                {id: 1, status: {value: null}}
+            );
+            let state = normalize(location);
             let denormalized = denormalize(
                 state.result,
-                builder.build('test.messages.Profile'),
+                builder.build('test.messages.Location'),
                 state,
-                ['status.value']
+                ['admin.status.value']
             );
-            should().not.exist(denormalized);
+            should().not.exist(denormalized, 'location should not have been denormalized');
 
-            profile = mockProfile(builder);
-            state = normalize(profile);
+            location = mockLocation(builder);
+            state = normalize(location);
             denormalized = denormalize(
                 state.result,
-                builder.build('test.messages.Profile'),
+                builder.build('test.messages.Location'),
                 state,
-                ['status.value']
+                ['admin.status.value']
             );
-            should().exist(denormalized.status.value);
+            should().exist(denormalized, 'should have denormalized the location');
+            should().exist(denormalized.admin.status.value, 'admin.status.value should be populated');
         });
 
         it('can denormalize an array of normalized entities', () => {

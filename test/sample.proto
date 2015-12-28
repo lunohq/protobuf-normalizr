@@ -31,7 +31,7 @@ message Location {
     optional uint32 id = 1;
     optional string name = 2;
     optional Address address = 3;
-    repeated Profile admins = 4;
+    optional Profile admin = 4;
     repeated Profile profiles = 5;
 }
 

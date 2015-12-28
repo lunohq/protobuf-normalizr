@@ -127,11 +127,11 @@ const denormalizeEntity = (entity, entityKey, key, state, parent = null, require
             denormalizedEntity.set(field, []);
             value.map((id) => {
                 const normalizedValue = state.entities[type][id];
-                denormalizedEntity[field].push(denormalizeEntity(normalizedValue, type, id, state, parent = entityKey, requiredFields = requiredFields));
+                denormalizedEntity[field].push(denormalizeEntity(normalizedValue, type, id, state, parent = entityKey));
             });
         } else {
             const normalizedValue = state.entities[type][value];
-            denormalizedEntity.set(field, denormalizeEntity(normalizedValue, type, value, state, parent = entityKey, requiredFields = requiredFields));
+            denormalizedEntity.set(field, denormalizeEntity(normalizedValue, type, value, state, parent = entityKey));
         }
     }
 
