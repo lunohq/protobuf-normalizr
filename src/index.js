@@ -91,21 +91,7 @@ const visit = (obj, entities, normalizations, key=null) => {
     return obj;
 }
 
-function entityHasValueForField (entity, field) {
-    const parts = field.split('.');
-    const part = parts[0];
-    const remainder = parts.slice(1).join('.');
-    const value = entity[part];
-    if (value !== undefined && value !== null) {
-        if (remainder) {
-            return entityHasValueForField(value, remainder);
-        }
-        return true;
-    }
-    return false;
-}
-
-const denormalizeEntity = (entity, entityKey, key, state, parent = null, requiredFields = null) => {
+const denormalizeEntity = (entity, entityKey, key, state, parent = null, validator = null) => {
     // Create a copy of the entity which we'll denormalize. This ensures we're not inflating entities when
     // denormalizing.
     const denormalizedEntity = entity.$type.clazz.decode(entity.encode());
@@ -135,13 +121,8 @@ const denormalizeEntity = (entity, entityKey, key, state, parent = null, require
         }
     }
 
-    // validate that the denormalizedEntity has all the required fields
-    if (requiredFields && requiredFields.length > 0) {
-        for (let field of requiredFields) {
-            if (!entityHasValueForField(denormalizedEntity, field)) {
-                return null;
-            }
-        }
+    if (validator && !validator(denormalizedEntity, entityKey, key)) {
+        return null;
     }
 
     return denormalizedEntity;
@@ -154,7 +135,7 @@ export default function normalize(obj, key=null) {
     return { entities, normalizations, result };
 }
 
-export function denormalize(key, builder, state, requiredFields) {
+export function denormalize(key, builder, state, validator) {
     const entityKey = getEntityKey(builder);
     if (!state.entities[entityKey]) {
         return;
@@ -162,12 +143,12 @@ export function denormalize(key, builder, state, requiredFields) {
     if (Array.isArray(key)) {
         return key.map(id => {
             const entity = state.entities[entityKey][id];
-            denormalizeEntity(entity, entityKey, id, state, undefined, requiredFields);
+            denormalizeEntity(entity, entityKey, id, state, undefined, validator);
             return entity;
         });
     } else {
         const entity = state.entities[entityKey][key];
-        return denormalizeEntity(entity, entityKey, key, state, undefined, requiredFields)
+        return denormalizeEntity(entity, entityKey, key, state, undefined, validator)
     }
 }
 
