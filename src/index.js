@@ -144,7 +144,7 @@ export function denormalize(key, builder, state, validator) {
         return key.map(id => {
             const entity = state.entities[entityKey][id];
             const denormalizedEntity = denormalizeEntity(entity, entityKey, id, state, undefined, validator);
-            if (validator && !validator(denormalizedEntity, entityKey, key)) {
+            if (validator && !validator(denormalizedEntity, entityKey, id)) {
                 return;
             } else {
                 return entity;
