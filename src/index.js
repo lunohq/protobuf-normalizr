@@ -139,7 +139,7 @@ export default function normalize(obj, key=null, merge=null) {
     return { entities, normalizations, result };
 }
 
-export function denormalize(key, builder, state, validator) {
+export function denormalize(key, builder, state, validator=null) {
     const entityKey = getEntityKey(builder);
     if (!state.entities[entityKey]) {
         return;
