@@ -19,7 +19,7 @@ const getEntityId = (entity, key=null) => {
     return key ? key : entity.get('id');
 }
 
-const normalizeField = (field, entity, entities, normalizations, key=null) => {
+const normalizeField = (field, entity, entities, normalizations, key=null, merge=null) => {
     let value = entity.get(field.name)
     if (value === null || !(field.repeated && value.length && isEntity(value[0], key) || isEntity(value, key))) {
         return;
@@ -42,12 +42,12 @@ const normalizeField = (field, entity, entities, normalizations, key=null) => {
         }
         value.map((childProtobuf) => {
             stored[field.name].push(childProtobuf.id);
-            visit(childProtobuf, entities, normalizations);
+            visit(childProtobuf, entities, normalizations, merge);
         })
         entity.set(field.name, null);
     } else if (isEntity(value)) {
         stored[field.name] = value.id;
-        visit(value, entities, normalizations);
+        visit(value, entities, normalizations, merge);
         entity.set(field.name, null);
     }
 }
@@ -59,14 +59,14 @@ const visitProtobuf = (entity, entities, normalizations, key=null) => {
     return entity;
 }
 
-const visitArray = (obj, entities, normalizations) => {
+const visitArray = (obj, entities, normalizations, merge=null) => {
     const normalized = obj.map((childObj) => {
-        return visit(childObj, entities, normalizations);
+        return visit(childObj, entities, normalizations, merge);
     })
     return normalized;
 }
 
-const visitEntity = (entity, entities, normalizations, key=null) => {
+const visitEntity = (entity, entities, normalizations, key=null, merge=null) => {
     const entityKey = getEntityKey(entity);
     const entityId = getEntityId(entity, key);
 
@@ -74,18 +74,22 @@ const visitEntity = (entity, entities, normalizations, key=null) => {
         entities[entityKey] = {};
     }
 
-    entities[entityKey][entityId] = entity;
+    if (merge) {
+        entities[entityKey][entityId] = merge(entities[entityKey][entityId], entity);
+    } else {
+        entities[entityKey][entityId] = entity;
+    }
     visitProtobuf(entity, entities, normalizations, key);
     return entityId;
 }
 
-const visit = (obj, entities, normalizations, key=null) => {
+const visit = (obj, entities, normalizations, key=null, merge=null) => {
     if (isProtobuf(obj) && isEntity(obj, key)) {
-        return visitEntity(obj, entities, normalizations, key);
+        return visitEntity(obj, entities, normalizations, key, merge);
     } else if (isProtobuf(obj)) {
-        return visitProtobuf(obj, entities, normalizations);
+        return visitProtobuf(obj, entities, normalizations, merge);
     } else if (obj instanceof Array) {
-        return visitArray(obj, entities, normalizations);
+        return visitArray(obj, entities, normalizations, merge);
     }
 
     return obj;
@@ -128,10 +132,10 @@ const denormalizeEntity = (entity, entityKey, key, state, parent = null, validat
     return denormalizedEntity;
 }
 
-export default function normalize(obj, key=null) {
+export default function normalize(obj, key=null, merge=null) {
     let entities = {};
     let normalizations = {};
-    let result = visit(obj, entities, normalizations, key);
+    let result = visit(obj, entities, normalizations, key, merge);
     return { entities, normalizations, result };
 }
 
