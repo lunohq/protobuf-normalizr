@@ -14,9 +14,11 @@ function entityHasValueForField(entity, field) {
 
 export function createRequiredFieldsValidator(fields) {
     return (denormalizedEntity, entityKey, key) => {
-        for (let field of fields) {
-            if (!entityHasValueForField(denormalizedEntity, field)) {
-                return false;
+        if (fields) {
+            for (let field of fields) {
+                if (!entityHasValueForField(denormalizedEntity, field)) {
+                    return false;
+                }
             }
         }
         return true;
