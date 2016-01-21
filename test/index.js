@@ -1,7 +1,9 @@
 import { should } from 'chai';
 import Protobuf from 'protobufjs';
 
-import normalize, { denormalize, getNormalizations } from '../lib/index';
+import normalize, { denormalize, getNormalizations } from '../lib';
+import { createRequiredFieldsValidator } from '../lib/validators';
+import combine from '../lib/combine';
 
 should();
 
@@ -278,32 +280,8 @@ describe('pbnormalizr', () => {
 
         it('will return null if the protobuf doesn\'t pass validation', () => {
             // Test with validator that checks for required fields
-            let entityHasValueForField = (entity, field) => {
-                const parts = field.split('.');
-                const part = parts[0];
-                const remainder = parts.slice(1).join('.');
-                const value = entity[part];
-                if (value !== undefined && value !== null) {
-                    if (remainder) {
-                        return entityHasValueForField(value, remainder);
-                    }
-                    return true;
-                }
-                return false;
-            };
-            let requiredFields = ['admin.status.value'];
-            let validator = (denormalizedEntity, entityKey, key) => {
-                if (requiredFields && requiredFields.length > 0) {
-                    for (let field of requiredFields) {
-                        if (!entityHasValueForField(denormalizedEntity, field)) {
-                            return false;
-                        }
-                    }
-                }
-
-                return true
-            };
-
+            const requiredFields = ['admin.status.value'];
+            const validator = createRequiredFieldsValidator(requiredFields);
             let location = mockLocation(
                 builder,
                 undefined,
@@ -329,6 +307,53 @@ describe('pbnormalizr', () => {
             );
             should().exist(denormalized, 'should have denormalized the location');
             should().exist(denormalized.admin.status.value, 'admin.status.value should be populated');
+        });
+
+        it('supports composing validators', () => {
+            const validator1 = createRequiredFieldsValidator(['name']);
+            const validator2 = createRequiredFieldsValidator(['admin.status.value']);
+            const combinedValidator = combine(validator1, validator2);
+            let location = mockLocation(
+                builder,
+                undefined,
+                undefined,
+                {id: 1, status: {value: null}}
+            );
+            let state = normalize(location);
+            let denormalized = denormalize(
+                state.result,
+                builder.build('test.messages.Location'),
+                state,
+                combinedValidator
+            );
+            should().not.exist(denormalized, 'combinedValidator should not have denormalized the entity');
+
+            denormalized = denormalize(
+                state.result,
+                builder.build('test.messages.Location'),
+                state,
+                validator1
+            )
+            should().exist(denormalized, 'validator1 should have denormalized the entity');
+
+            denormalized = denormalize(
+                state.result,
+                builder.build('test.messages.Location'),
+                state,
+                validator2
+            )
+            should().not.exist(denormalized, 'validator2 should not have denormalized the entity');
+
+            location = mockLocation(builder);
+            state = normalize(location);
+            debugger;
+            denormalized = denormalize(
+                state.result,
+                builder.build('test.messages.Location'),
+                state,
+                combinedValidator
+            );
+            should().exist(denormalized, 'combinedValidator should have denormalized the entity');
         });
 
         it('can denormalize an array of normalized entities', () => {
