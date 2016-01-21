@@ -135,9 +135,16 @@ export default function normalize(obj, key=null) {
     return { entities, normalizations, result };
 }
 
-// The validator function should return false if the denormalized entity fails validation, true otherwise.
-// It should also accept three parameters: the denormalized entity, entity key, and key.
-export function denormalize(key, builder, state, validator=null) {
+/**
+* Denormalizes the entity that is associated with the key.
+*
+* @param {Object} key
+* @param {Builder} builder
+* @param {Map} state
+* @param {Function} validator Accepts three parameters (denormalized entity, entity key, key) and returns false if entity is invalid
+* @return {Array}|{Object}|{Void} denormalized entity or null if invalid or not found
+*/
+export function denormalize(key, builder, state, validator = null) {
     const entityKey = getEntityKey(builder);
     if (!state.entities[entityKey]) {
         return;
