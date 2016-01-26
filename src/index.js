@@ -150,23 +150,22 @@ export function denormalize(key, builder, state, validator = null) {
         return;
     }
     if (Array.isArray(key)) {
-        let valid = true;
         let entities = [];
-        key.every(id => {
+        let entitiesValid = key.every(id => {
             const entity = state.entities[entityKey][id];
             const denormalizedEntity = denormalizeEntity(entity, entityKey, id, state, undefined, validator);
+            let entityValid = true;
             if (validator) {
-                valid = validator(denormalizedEntity, entityKey, id);
+                entityValid = validator(denormalizedEntity, entityKey, id);
             }
-            if (valid) {
+            if (entityValid) {
                 entities.push(denormalizedEntity);
             }
-            return valid;
+            return entityValid;
         });
-        if (valid) {
+        if (entitiesValid) {
             return entities;
-        }
-        else {
+        } else {
             return null;
         }
     } else {
