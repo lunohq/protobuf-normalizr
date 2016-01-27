@@ -91,21 +91,7 @@ const visit = (obj, entities, normalizations, key=null) => {
     return obj;
 }
 
-function entityHasValueForField (entity, field) {
-    const parts = field.split('.');
-    const part = parts[0];
-    const remainder = parts.slice(1).join('.');
-    const value = entity[part];
-    if (value !== undefined && value !== null) {
-        if (remainder) {
-            return entityHasValueForField(value, remainder);
-        }
-        return true;
-    }
-    return false;
-}
-
-const denormalizeEntity = (entity, entityKey, key, state, parent = null, requiredFields = null) => {
+const denormalizeEntity = (entity, entityKey, key, state, parent = null, validator = null) => {
     // Create a copy of the entity which we'll denormalize. This ensures we're not inflating entities when
     // denormalizing.
     const denormalizedEntity = entity.$type.clazz.decode(entity.encode());
@@ -135,13 +121,8 @@ const denormalizeEntity = (entity, entityKey, key, state, parent = null, require
         }
     }
 
-    // validate that the denormalizedEntity has all the required fields
-    if (requiredFields && requiredFields.length > 0) {
-        for (let field of requiredFields) {
-            if (!entityHasValueForField(denormalizedEntity, field)) {
-                return null;
-            }
-        }
+    if (validator && !validator(denormalizedEntity, entityKey, key)) {
+        return null;
     }
 
     return denormalizedEntity;
@@ -154,20 +135,42 @@ export default function normalize(obj, key=null) {
     return { entities, normalizations, result };
 }
 
-export function denormalize(key, builder, state, requiredFields) {
+/**
+* Denormalizes the entity that is associated with the key.
+*
+* @param {Object} key
+* @param {Builder} builder
+* @param {Map} state
+* @param {Function} validator Accepts three parameters (denormalized entity, entity key, key) and returns false if entity is invalid
+* @return {Array}|{Object}|{Void} denormalized entity or null if invalid or not found
+*/
+export function denormalize(key, builder, state, validator = null) {
     const entityKey = getEntityKey(builder);
     if (!state.entities[entityKey]) {
         return;
     }
     if (Array.isArray(key)) {
-        return key.map(id => {
+        let entities = [];
+        let entitiesValid = key.every(id => {
             const entity = state.entities[entityKey][id];
-            denormalizeEntity(entity, entityKey, id, state, undefined, requiredFields);
-            return entity;
+            const denormalizedEntity = denormalizeEntity(entity, entityKey, id, state, undefined, validator);
+            let entityValid = true;
+            if (validator) {
+                entityValid = validator(denormalizedEntity, entityKey, id);
+            }
+            if (entityValid) {
+                entities.push(denormalizedEntity);
+            }
+            return entityValid;
         });
+        if (entitiesValid) {
+            return entities;
+        } else {
+            return null;
+        }
     } else {
         const entity = state.entities[entityKey][key];
-        return denormalizeEntity(entity, entityKey, key, state, undefined, requiredFields)
+        return denormalizeEntity(entity, entityKey, key, state, undefined, validator)
     }
 }
 
