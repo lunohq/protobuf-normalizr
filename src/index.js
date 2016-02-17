@@ -170,6 +170,9 @@ export function denormalize(key, builder, state, validator = null) {
         }
     } else {
         const entity = state.entities[entityKey][key];
+        if (!entity) {
+            return;
+        }
         return denormalizeEntity(entity, entityKey, key, state, undefined, validator)
     }
 }

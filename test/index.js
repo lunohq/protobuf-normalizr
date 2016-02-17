@@ -278,6 +278,13 @@ describe('pbnormalizr', () => {
                 .should.eql(address);
         });
 
+        it('will return undefined if entity isn\'t found', () => {
+            const address = mockAddress(builder);
+            const state = normalize(address);
+            const entity = denormalize('random', builder.build('test.messages.Address'), state);
+            should().not.exist(entity);
+        });
+
         it('will return null if the protobuf doesn\'t pass validation', () => {
             // Test with validator that checks for required fields
             const requiredFields = ['admin.status.value'];
