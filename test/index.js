@@ -316,6 +316,20 @@ describe('pbnormalizr', () => {
             should().exist(denormalized.admin.status.value, 'admin.status.value should be populated');
         });
 
+        it('will run validation on protobufs that don\'t have normalizations', () => {
+            const requiredFields = ['value'];
+            const validator = createRequiredFieldsValidator(requiredFields);
+            let status = mockStatus(builder, {value: null});
+            let state = normalize(status);
+            let denormalized = denormalize(state.result, builder.build('test.messages.Status'), state, validator);
+            should().not.exist(denormalized, 'status should not have been denormalized');
+
+            status = mockStatus(builder);
+            state = normalize(status);
+            denormalized = denormalize(state.result, builder.build('test.messages.Status'), state, validator);
+            should().exist(denormalized, 'status should have been denormalized');
+        });
+
         it('supports composing validators', () => {
             const validator1 = createRequiredFieldsValidator(['name']);
             const validator2 = createRequiredFieldsValidator(['admin.status.value']);
