@@ -177,7 +177,7 @@ export function denormalize(key, builder, state, validator = null) {
 
 export function getNormalizations(normalizationsKey, key, builder, state) {
     const entityKey = getEntityKey(builder);
-    if (!state.normalizations[entityKey]) {
+    if (!state.normalizations || !state.normalizations[entityKey]) {
         return;
     }
     const normalizations = state.normalizations[entityKey][key];

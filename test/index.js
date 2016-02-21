@@ -407,6 +407,12 @@ describe('pbnormalizr', () => {
             (getNormalizations('profiles', normalized.result, location.$type.clazz, normalized)).should.eql([2]);
         });
 
+        it('handles not having any normalizations', () => {
+            const location = mockLocation(builder);
+            const state = {};
+            should().not.exist(getNormalizations('profiles', '123', location.$type.clazz, state));
+        });
+
     });
 
 })
