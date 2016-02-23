@@ -100,6 +100,10 @@ const denormalizeEntity = (entity, entityKey, key, state, parent = null, validat
         const normalizations = state.normalizations[entityKey][key];
         for (let field in normalizations) {
             const value = normalizations[field];
+            if (!fieldNames[field].resolvedType) {
+                continue;
+            }
+
             const type = fieldNames[field].resolvedType.fqn().toLowerCase();
             // Prevent circular relationships
             if (type === parent) {
