@@ -1,7 +1,8 @@
 import { should } from 'chai';
 import Protobuf from 'protobufjs';
+import Immutable from 'immutable';
 
-import normalize, { denormalize, getNormalizations } from '../lib';
+import normalize, { denormalize, getNormalizations, isImmutable } from '../lib';
 import { createRequiredFieldsValidator } from '../lib/validators';
 import combine from '../lib/combine';
 
@@ -269,7 +270,17 @@ describe('pbnormalizr', () => {
             denormalize(key, builder.build('test.messages.MultipleProfileResponse'), state)
                 .should.eql(expected);
             should().not.exist(response.profiles);
-        })
+        });
+
+        it('can denormalize a normalized immutable response', () => {
+            const response = mockMultipleProfileResponse(builder);
+            const expected = response.$type.clazz.decode(response.encode());
+            const key = 'key';
+            const state = Immutable.fromJS(normalize(response, key));
+            denormalize(key, builder.build('test.messages.MultipleProfileResponse'), state)
+                .should.eql(expected);
+            should().not.exist(response.profiles);
+        });
 
         it('can denormalize a single entity', () => {
             const address = mockAddress(builder);
@@ -384,6 +395,16 @@ describe('pbnormalizr', () => {
             ];
             const state = normalize([address1, address2]);
             denormalize(state.result, builder.build('test.messages.Address'), state)
+                .should.eql([address1, address2]);
+        });
+
+        it('can denormalize an array of normalized immutable entities', () => {
+            const [address1, address2] = [
+                mockAddress(builder),
+                mockAddress(builder, {id: 2}),
+            ];
+            const state = Immutable.fromJS(normalize([address1, address2]));
+            denormalize(state.get('result'), builder.build('test.messages.Address'), state)
                 .should.eql([address1, address2]);
         });
 
