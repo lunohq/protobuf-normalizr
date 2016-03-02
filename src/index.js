@@ -1,6 +1,9 @@
-const isProtobuf = (obj) => obj && obj.$type;
 
-const isEntity = (obj, key=null) => {
+function isProtobuf(obj) {
+    return obj && obj.$type;
+}
+
+function isEntity(obj, key = null) {
     if (
         (obj && obj.hasOwnProperty('id') && obj.id !== null) ||
         (key !== null)
@@ -11,15 +14,15 @@ const isEntity = (obj, key=null) => {
     return false;
 }
 
-const getEntityKey = (entity) => {
+function getEntityKey(entity) {
     return entity.$type.fqn().toLowerCase();
 }
 
-const getEntityId = (entity, key=null) => {
+function getEntityId(entity, key = null) {
     return key ? key : entity.get('id');
 }
 
-const normalizeField = (field, entity, entities, normalizations, key=null) => {
+function normalizeField(field, entity, entities, normalizations, key = null) {
     let value = entity.get(field.name)
     if (value === null || !(field.repeated && value.length && isEntity(value[0], key) || isEntity(value, key))) {
         return;
@@ -52,21 +55,21 @@ const normalizeField = (field, entity, entities, normalizations, key=null) => {
     }
 }
 
-const visitProtobuf = (entity, entities, normalizations, key=null) => {
+function visitProtobuf(entity, entities, normalizations, key = null) {
     entity.$type._fields.map((field) => {
         normalizeField(field, entity, entities, normalizations, key);
     });
     return entity;
 }
 
-const visitArray = (obj, entities, normalizations) => {
+function visitArray(obj, entities, normalizations) {
     const normalized = obj.map((childObj) => {
         return visit(childObj, entities, normalizations);
     })
     return normalized;
 }
 
-const visitEntity = (entity, entities, normalizations, key=null) => {
+function visitEntity(entity, entities, normalizations, key = null) {
     const entityKey = getEntityKey(entity);
     const entityId = getEntityId(entity, key);
 
@@ -79,7 +82,7 @@ const visitEntity = (entity, entities, normalizations, key=null) => {
     return entityId;
 }
 
-const visit = (obj, entities, normalizations, key=null) => {
+function visit(obj, entities, normalizations, key = null) {
     if (isProtobuf(obj) && isEntity(obj, key)) {
         return visitEntity(obj, entities, normalizations, key);
     } else if (isProtobuf(obj)) {
@@ -91,7 +94,7 @@ const visit = (obj, entities, normalizations, key=null) => {
     return obj;
 }
 
-const denormalizeEntity = (entity, entityKey, key, state, parent = null, validator = null) => {
+function denormalizeEntity(entity, entityKey, key, state, parent = null, validator = null) {
     // Create a copy of the entity which we'll denormalize. This ensures we're not inflating entities when
     // denormalizing.
     const denormalizedEntity = entity.$type.clazz.decode(entity.encode());
